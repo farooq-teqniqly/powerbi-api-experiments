@@ -52,7 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client\Models\Workspace.cs" />
+    <Compile Include="Client\Models\PbiResponse.cs" />
     <Compile Include="Client\PbiClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

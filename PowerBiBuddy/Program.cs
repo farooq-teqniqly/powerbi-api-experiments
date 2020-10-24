@@ -18,8 +18,27 @@ namespace PowerBiBuddy
 
             using (client)
             {
-                var workspaces = await client.GetWorkspacesAsync();
-                Console.WriteLine(workspaces);
+                //var workspaces = await client.GetWorkspacesAsync();
+                //Console.WriteLine(workspaces);
+
+                //var json = await client.GetDatasetsAsync(Guid.Parse("79d545ef-674d-4fcb-a928-f2648240eaa3"));
+                var datasetJson = @"{
+                                      ""name"": ""SalesMarketing"",
+                                      ""defaultMode"": ""Push"",
+                                      ""tables"": [
+                                        {
+                                          ""name"": ""Product"",
+                                          ""columns"": [
+                                            {
+                                              ""name"": ""Name"",
+                                              ""dataType"": ""string""
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }";
+
+                var response = await client.AddDatasetAsync(Guid.Parse("79d545ef-674d-4fcb-a928-f2648240eaa3"), datasetJson);
             }
 
             Console.Read();
@@ -49,6 +68,7 @@ namespace PowerBiBuddy
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Authorization", authToken);
+            client.DefaultRequestHeaders.Add("Content-Type", "application/json");
             return client;
         }
     }
