@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PowerBiBuddy.Client.Models;
 
 namespace PowerBiBuddy
@@ -28,16 +23,16 @@ namespace PowerBiBuddy
             this.webRequestFactory = webRequestFactory;
         }
 
-        public async Task<string> AddWorkspaceAsync(string workspaceJson)
+        public async Task<string> AddWorkspaceAsync(AddWorkspaceRequest addWorkspaceRequest)
         {
             var request = this.webRequestFactory.CreatePostJsonWebRequest(
-                $"https://api.powerbi.com/v1.0/myorg/groups",
-                workspaceJson,
-                new Dictionary<string, string> { { "Authorization", this.authToken } });
+                $"{baseAddress}/groups",
+                JsonConvert.SerializeObject(addWorkspaceRequest),
+                this.authToken);
 
             var response = (HttpWebResponse)request.GetResponse();
 
-            string content = string.Empty;
+            var content = string.Empty;
 
             using (response)
             {
@@ -48,16 +43,16 @@ namespace PowerBiBuddy
             return content;
         }
 
-        public async Task<string> AddDatasetAsync(Guid workspaceId, string datasetJson)
+        public async Task<string> AddDatasetAsync(Guid workspaceId, AddDatasetRequest addDatasetRequest)
         {
             var request = this.webRequestFactory.CreatePostJsonWebRequest(
                 $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId:D}/datasets",
-                datasetJson,
-                new Dictionary<string, string> {{"Authorization", this.authToken}});
+                JsonConvert.SerializeObject(addDatasetRequest),
+                this.authToken);
 
             var response = (HttpWebResponse)request.GetResponse();
 
-            string content = string.Empty;
+            var content = string.Empty;
 
             using (response)
             {
@@ -68,16 +63,16 @@ namespace PowerBiBuddy
             return content;
         }
 
-        public async Task<string> AddDataToDatasetAsync(Guid workspaceId, Guid datasetId, string tableName, string dataJson)
+        public async Task<string> AddRowsToDatasetAsync(Guid workspaceId, Guid datasetId, string tableName, AddDatasetRowsRequest<ConnectionRow> addDatasetRowsRequest)
         {
             var request = this.webRequestFactory.CreatePostJsonWebRequest(
                 $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId:D}/datasets/{datasetId:D}/tables/{tableName}/rows",
-                dataJson,
-                new Dictionary<string, string> { { "Authorization", this.authToken } });
+                JsonConvert.SerializeObject(addDatasetRowsRequest),
+                this.authToken);
 
             var response = (HttpWebResponse)request.GetResponse();
 
-            string content = string.Empty;
+            var content = string.Empty;
 
             using (response)
             {
@@ -92,11 +87,11 @@ namespace PowerBiBuddy
         {
             var request = this.webRequestFactory.CreateDeleteWebRequest(
                 $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId:D}/datasets/{datasetId:D}/tables/{tableName}/rows",
-                new Dictionary<string, string> { { "Authorization", this.authToken } });
+                this.authToken);
 
             var response = (HttpWebResponse)request.GetResponse();
 
-            string content = string.Empty;
+            var content = string.Empty;
 
             using (response)
             {

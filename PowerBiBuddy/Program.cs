@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 using System.Net.Http;
-using System.Runtime.InteropServices;
-using System.Security.Principal;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using PowerBiBuddy.Client.Models;
 
 namespace PowerBiBuddy
 {
@@ -19,13 +15,16 @@ namespace PowerBiBuddy
             var client = new PbiClient("power-bi-buddy-console", token, new HttpWebRequestFactory());
 
             //await CreateWorkspace(client);
-            //await CreateDataset(client);
-            await DeleteDataFromDataset(client);
-            await AddDataToDataset(client);
+            var workspaceId = new Guid("8af1da02-6cb2-4039-9aab-5ef52b62ed3c");
+            //await CreateDataset(client, workspaceId);
 
-            // workspace id: 88e4cf51-4b79-4ca1-af8b-a1180e4eaf90
-            // dataset id: 04c08958-15ed-4694-a35a-0786386bf3c9
-            
+            var datasetId = new Guid("d3b5bad8-c2c4-467c-b2c9-401bce705a0c");
+            //await DeleteDataFromDataset(client);
+            await AddDataToDataset(client, workspaceId, datasetId, "Connections");
+
+            // workspace id: 8af1da02-6cb2-4039-9aab-5ef52b62ed3c
+            // dataset id: 169988d8-dfe2-4151-84ed-d7c5d5f92191
+
             Console.Read();
         }
 
@@ -35,48 +34,41 @@ namespace PowerBiBuddy
 
             using (client)
             {
-                var workspaceJson = @"{
-                                      ""name"": ""farooq-test-brim""
-                                    }";
-
-                var response = await client.AddWorkspaceAsync(workspaceJson);
+                var response = await client.AddWorkspaceAsync(
+                    new AddWorkspaceRequest {Name = "farooq-test-brim"});
 
                 Console.WriteLine("Workspace created.");
                 Console.WriteLine(response);
             }
         }
 
-        private static async Task CreateDataset(PbiClient client)
+        private static async Task CreateDataset(PbiClient client, Guid workspaceId)
         {
             Console.WriteLine("Creating dataset...");
 
             using (client)
             {
-                var datasetJson = @"{
-                                      ""name"": ""ReportFromApis"",
-                                      ""defaultMode"": ""Push"",
-                                      ""tables"": [
-                                        {
-                                          ""name"": ""Connections"",
-                                          ""columns"": [
-                                            {
-                                              ""name"": ""TenantId"",
-                                              ""dataType"": ""string""
-                                            },
-                                            {
-                                              ""name"": ""Type"",
-                                              ""dataType"": ""string""
-                                            },
-                                            {
-                                              ""name"": ""ConnectionString"",
-                                              ""dataType"": ""string""
-                                            }
-                                          ]
-                                        }
-                                      ]
-                                    }";
+                var addDatasetRequest = new AddDatasetRequest
+                {
+                    Name = "ReportFromApis",
+                    Tables = new List<Table>
+                    {
+                        new Table
+                        {
+                            Name = "Connections",
+                            Columns = new List<Column>
+                            {
+                                new Column {Name = "TenantId", DataType = "string"},
+                                new Column {Name = "Type", DataType = "string"},
+                                new Column {Name = "ConnectionString", DataType = "string"}
+                            }
+                        }
+                    }
+                };
 
-                var response = await client.AddDatasetAsync(Guid.Parse("88e4cf51-4b79-4ca1-af8b-a1180e4eaf90"), datasetJson);
+                var response = await client.AddDatasetAsync(
+                    workspaceId,
+                    addDatasetRequest);
                 
                 Console.WriteLine("Dataset created.");
                 Console.WriteLine(response);
@@ -84,35 +76,38 @@ namespace PowerBiBuddy
 
         }
 
-        private static async Task DeleteDataFromDataset(PbiClient client)
+        private static async Task DeleteDataFromDataset(PbiClient client, Guid workspaceId, Guid datasetId)
         {
             Console.WriteLine("Deleting data from dataset...");
 
             var response = await client.DeleteDataFromDatasetAsync(
-                Guid.Parse("88e4cf51-4b79-4ca1-af8b-a1180e4eaf90"),
-                Guid.Parse("04c08958-15ed-4694-a35a-0786386bf3c9"),
+                workspaceId,
+                datasetId,
                 "Connections");
 
             Console.WriteLine("Data deleted.");
             Console.WriteLine(response);
         }
 
-        private static async Task AddDataToDataset(PbiClient client)
+        private static async Task AddDataToDataset(PbiClient client, Guid workspaceId, Guid datasetId, string tableName)
         {
             Console.WriteLine("Adding data to dataset...");
 
-           
+            var addRowsRequest = new AddDatasetRowsRequest<ConnectionRow>
+            {
+                Rows = new List<ConnectionRow>
+                {
+                    new ConnectionRow {TenantId = "tenant1", Type = "sqlserver", ConnectionString = "cs-tenant1"},
+                    new ConnectionRow {TenantId = "tenant2", Type = "sqlserver", ConnectionString = "cs-tenant2"},
+                    new ConnectionRow {TenantId = "tenant3", Type = "sqlserver", ConnectionString = "cs-tenant3"}
+                }
+            };
 
-            string rowsJson = "{\"rows\":" +
-                                  "[{\"TenantId\":\"tenant1\",\"Type\":\"sqlserver\",\"ConnectionString\":\"cs-tenant1\"}," +
-                                  "{\"TenantId\":\"tenant2\",\"Type\":\"sqlserver\",\"ConnectionString\":\"cs-tenant2\"}," +
-                                  "{\"TenantId\":\"tenant3\",\"Type\":\"sqlserver\",\"ConnectionString\":\"cs-tenant3\"}]}";
-
-            var response = await client.AddDataToDatasetAsync(
-                Guid.Parse("88e4cf51-4b79-4ca1-af8b-a1180e4eaf90"),
-                Guid.Parse("04c08958-15ed-4694-a35a-0786386bf3c9"),
-                "Connections",
-                rowsJson);
+            var response = await client.AddRowsToDatasetAsync(
+                workspaceId,
+                datasetId,
+                tableName,
+                addRowsRequest);
 
             Console.WriteLine("Data added.");
             Console.WriteLine(response);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using Newtonsoft.Json;
 
 namespace PowerBiBuddy.Client.Models
@@ -45,4 +46,53 @@ namespace PowerBiBuddy.Client.Models
         public string QnaEmbedUrl { get; set; }
     }
 
+    public class AddWorkspaceRequest
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+    }
+
+    public class AddDatasetRequest
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("defaultMode")]
+        public string DefaultMode => "Push";
+
+        [JsonProperty("tables")]
+        public IEnumerable<Table> Tables { get; set; }
+    }
+
+    public class Table
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("columns")]
+        public IEnumerable<Column> Columns { get; set; }
+    }
+
+    public class Column
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("dataType")]
+        public string DataType { get; set; }
+    }
+
+    public class AddDatasetRowsRequest<TRow>
+    {
+        [JsonProperty("rows")]
+        public IEnumerable<TRow> Rows { get; set; }
+    }
+
+    public class ConnectionRow
+    {
+        public string TenantId { get; set; }
+        public string Type { get; set; }
+
+        public string ConnectionString { get; set; }
+    }
 }

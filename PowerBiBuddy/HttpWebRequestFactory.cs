@@ -1,31 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace PowerBiBuddy
 {
     public class HttpWebRequestFactory
     {
-        public HttpWebRequest CreatePostJsonWebRequest(
-            string uri,
-            string content,
-            IDictionary<string, string> headers)
+        public HttpWebRequest CreatePostJsonWebRequest(string uri, string body, string authToken)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.KeepAlive = true;
+            return CreatePostRequest(uri, body, authToken);
+        }
+
+        public HttpWebRequest CreateDeleteWebRequest(string uri, string authToken)
+        {
+            return CreateDeleteRequest(uri, authToken);
+        }
+
+        private HttpWebRequest CreateGetRequest(string uri, string authToken)
+        {
+            var request = CreateRequest(uri, authToken);
+            request.Method = "GET";
+            return request;
+        }
+
+        private HttpWebRequest CreatePostRequest(string uri, string body, string authToken)
+        {
+            var request = CreateRequest(uri, authToken);
             request.Method = "POST";
-            request.ContentLength = 0;
-            request.ContentType = "application/json";
 
-            foreach (var header in headers)
-            {
-                request.Headers.Add(header.Key, header.Value);
-            }
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(content);
+            var byteArray = Encoding.UTF8.GetBytes(body);
             request.ContentLength = byteArray.Length;
 
             using (var writer = request.GetRequestStream())
@@ -37,19 +39,27 @@ namespace PowerBiBuddy
             return request;
         }
 
-        public HttpWebRequest CreateDeleteWebRequest(
-            string uri,
-            IDictionary<string, string> headers)
+        private HttpWebRequest CreateDeleteRequest(string uri, string authToken)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.KeepAlive = true;
+            var request = CreateRequest(uri, authToken);
             request.Method = "DELETE";
+            return request;
+        }
 
-            foreach (var header in headers)
-            {
-                request.Headers.Add(header.Key, header.Value);
-            }
+        private HttpWebRequest CreateRequest(string uri, string authToken)
+        {
+            var request = (HttpWebRequest)WebRequest.Create(uri);
+            request.KeepAlive = true;
+            request.ContentLength = 0;
+            request.ContentType = "application/json";
+            request = AddAuthHeader(request, authToken);
 
+            return request;
+        }
+
+        private HttpWebRequest AddAuthHeader(HttpWebRequest request, string authToken)
+        {
+            request.Headers.Add("Authorization", authToken);
             return request;
         }
     }
