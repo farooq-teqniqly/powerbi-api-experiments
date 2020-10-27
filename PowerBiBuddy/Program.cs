@@ -94,7 +94,7 @@ namespace PowerBiBuddy
                     masterReport.Name);
 
                 Console.WriteLine($"Finished cloning report {clonedReport.Name}");
-
+                Console.WriteLine("Press a key to end the program.");
                 Console.Read();
 
                 return 0; 
