@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -23,7 +22,23 @@ namespace PowerBiBuddy
             this.webRequestFactory = webRequestFactory;
         }
 
-        public async Task<string> AddWorkspaceAsync(AddWorkspaceRequest addWorkspaceRequest)
+        public async Task<PbiResponse<Workspace>> GetWorkspacesAsync()
+        {
+            var request = this.webRequestFactory.CreateGetWebRequest($"{baseAddress}/groups", this.authToken);
+            var response = (HttpWebResponse)request.GetResponse();
+
+            var content = string.Empty;
+
+            using (response)
+            {
+                var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
+                content = await reader.ReadToEndAsync();
+            }
+
+            return JsonConvert.DeserializeObject<PbiResponse<Workspace>>(content);
+        }
+
+        public async Task<Workspace> AddWorkspaceAsync(AddWorkspaceRequest addWorkspaceRequest)
         {
             var request = this.webRequestFactory.CreatePostJsonWebRequest(
                 $"{baseAddress}/groups",
@@ -40,10 +55,10 @@ namespace PowerBiBuddy
                 content = await reader.ReadToEndAsync();
             }
 
-            return content;
+            return JsonConvert.DeserializeObject<Workspace>(content);
         }
 
-        public async Task<string> AddDatasetAsync(Guid workspaceId, AddDatasetRequest addDatasetRequest)
+        public async Task<Dataset> AddDatasetAsync(Guid workspaceId, AddDatasetRequest addDatasetRequest)
         {
             var request = this.webRequestFactory.CreatePostJsonWebRequest(
                 $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId:D}/datasets",
@@ -60,10 +75,14 @@ namespace PowerBiBuddy
                 content = await reader.ReadToEndAsync();
             }
 
-            return content;
+            return JsonConvert.DeserializeObject<Dataset>(content);
         }
 
-        public async Task<string> AddRowsToDatasetAsync(Guid workspaceId, Guid datasetId, string tableName, AddDatasetRowsRequest<ConnectionRow> addDatasetRowsRequest)
+        public async Task<string> AddRowsToDatasetAsync(
+            Guid workspaceId, 
+            Guid datasetId, 
+            string tableName, 
+            AddDatasetRowsRequest<ConnectionRow> addDatasetRowsRequest)
         {
             var request = this.webRequestFactory.CreatePostJsonWebRequest(
                 $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId:D}/datasets/{datasetId:D}/tables/{tableName}/rows",

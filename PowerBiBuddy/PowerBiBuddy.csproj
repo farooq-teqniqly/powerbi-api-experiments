@@ -7,7 +7,7 @@
     <ProjectGuid>{B626DE43-DB17-4008-8E8A-8F6EA507F6BC}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>PowerBiBuddy</RootNamespace>
-    <AssemblyName>PowerBiBuddy</AssemblyName>
+    <AssemblyName>onboard</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -52,7 +52,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client\Models\AddDatasetRequest.cs" />
+    <Compile Include="Client\Models\AddDatasetRowsRequest.cs" />
+    <Compile Include="Client\Models\AddWorkspaceRequest.cs" />
+    <Compile Include="Client\Models\Column.cs" />
+    <Compile Include="Client\Models\ConnectionRow.cs" />
+    <Compile Include="Client\Models\Dataset.cs" />
+    <Compile Include="Client\Models\PbiResource.cs" />
     <Compile Include="Client\Models\PbiResponse.cs" />
+    <Compile Include="Client\Models\Table.cs" />
+    <Compile Include="Client\Models\Workspace.cs" />
     <Compile Include="Client\PbiClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

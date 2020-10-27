@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using PowerBiBuddy.Client.Models;
@@ -9,53 +8,46 @@ namespace PowerBiBuddy
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
-            var token = await GetTokenAsync();
-            var client = new PbiClient("power-bi-buddy-console", token, new HttpWebRequestFactory());
-
-            //await CreateWorkspace(client);
-            var workspaceId = new Guid("8af1da02-6cb2-4039-9aab-5ef52b62ed3c");
-            //await CreateDataset(client, workspaceId);
-
-            var datasetId = new Guid("d3b5bad8-c2c4-467c-b2c9-401bce705a0c");
-            //await DeleteDataFromDataset(client);
-            await AddDataToDataset(client, workspaceId, datasetId, "Connections");
-
-            // workspace id: 8af1da02-6cb2-4039-9aab-5ef52b62ed3c
-            // dataset id: 169988d8-dfe2-4151-84ed-d7c5d5f92191
-
-            Console.Read();
-        }
-
-        private static async Task CreateWorkspace(PbiClient client)
-        {
-            Console.WriteLine("Creating workspace...");
-
-            using (client)
+            if (args.Length != 1)
             {
-                var response = await client.AddWorkspaceAsync(
-                    new AddWorkspaceRequest {Name = "farooq-test-brim"});
-
-                Console.WriteLine("Workspace created.");
-                Console.WriteLine(response);
+                Console.WriteLine("USAGE: onboard [company]");
+                return -1;
             }
-        }
 
-        private static async Task CreateDataset(PbiClient client, Guid workspaceId)
-        {
-            Console.WriteLine("Creating dataset...");
+            var company = args[0];
 
+            var token = await GetTokenAsync();
+            var client = new PbiClient("onboard-pbi-console", token, new HttpWebRequestFactory());
+            
             using (client)
             {
-                var addDatasetRequest = new AddDatasetRequest
-                {
-                    Name = "ReportFromApis",
-                    Tables = new List<Table>
+
+                // Create workspace
+                var workspaceName = $"test-{company}";
+
+                Console.WriteLine($"Creating workspace {workspaceName}...");
+
+                var workspace = await client.AddWorkspaceAsync(new AddWorkspaceRequest { Name = workspaceName });
+
+                Console.WriteLine($"Workspace {workspace.Name} created.");
+
+                var datasetName = "receiving-dataset";
+                var tableName = "Connections";
+
+                Console.WriteLine($"Creating dataset {datasetName}...");
+
+                var dataset = await client.AddDatasetAsync(
+                    workspace.Id,
+                    new AddDatasetRequest
                     {
+                        Name = datasetName,
+                        Tables = new List<Table>
+                        {
                         new Table
                         {
-                            Name = "Connections",
+                            Name = tableName,
                             Columns = new List<Column>
                             {
                                 new Column {Name = "TenantId", DataType = "string"},
@@ -63,54 +55,34 @@ namespace PowerBiBuddy
                                 new Column {Name = "ConnectionString", DataType = "string"}
                             }
                         }
-                    }
-                };
+                        }
+                    });
 
-                var response = await client.AddDatasetAsync(
-                    workspaceId,
-                    addDatasetRequest);
-                
-                Console.WriteLine("Dataset created.");
-                Console.WriteLine(response);
-            }
+                Console.WriteLine($"Dataset {dataset.Name} created.");
 
-        }
+                Console.WriteLine($"Populating dataset {dataset.Name}...");
 
-        private static async Task DeleteDataFromDataset(PbiClient client, Guid workspaceId, Guid datasetId)
-        {
-            Console.WriteLine("Deleting data from dataset...");
-
-            var response = await client.DeleteDataFromDatasetAsync(
-                workspaceId,
-                datasetId,
-                "Connections");
-
-            Console.WriteLine("Data deleted.");
-            Console.WriteLine(response);
-        }
-
-        private static async Task AddDataToDataset(PbiClient client, Guid workspaceId, Guid datasetId, string tableName)
-        {
-            Console.WriteLine("Adding data to dataset...");
-
-            var addRowsRequest = new AddDatasetRowsRequest<ConnectionRow>
-            {
-                Rows = new List<ConnectionRow>
+                var addRowsRequest = new AddDatasetRowsRequest<ConnectionRow>
+                {
+                    Rows = new List<ConnectionRow>
                 {
                     new ConnectionRow {TenantId = "tenant1", Type = "sqlserver", ConnectionString = "cs-tenant1"},
                     new ConnectionRow {TenantId = "tenant2", Type = "sqlserver", ConnectionString = "cs-tenant2"},
                     new ConnectionRow {TenantId = "tenant3", Type = "sqlserver", ConnectionString = "cs-tenant3"}
                 }
-            };
+                };
 
-            var response = await client.AddRowsToDatasetAsync(
-                workspaceId,
-                datasetId,
-                tableName,
-                addRowsRequest);
+                await client.AddRowsToDatasetAsync(
+                    workspace.Id,
+                    dataset.Id,
+                    tableName,
+                    addRowsRequest);
 
-            Console.WriteLine("Data added.");
-            Console.WriteLine(response);
+                Console.WriteLine($"Finished populating dataset {dataset.Name}.");
+                Console.Read();
+
+                return 0; 
+            }
         }
 
         private static async Task<string> GetTokenAsync()
@@ -131,14 +103,6 @@ namespace PowerBiBuddy
                 new PlatformParameters(PromptBehavior.Always));
 
             return authResult;
-        }
-
-        private static HttpClient CreateHttpClient(string authToken)
-        {
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Authorization", authToken);
-            client.DefaultRequestHeaders.Add("Content-Type", "application/json");
-            return client;
         }
     }
 }

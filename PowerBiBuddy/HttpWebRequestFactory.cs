@@ -5,6 +5,11 @@ namespace PowerBiBuddy
 {
     public class HttpWebRequestFactory
     {
+        public HttpWebRequest CreateGetWebRequest(string uri, string authToken)
+        {
+            return CreateGetRequest(uri, authToken);
+        }
+
         public HttpWebRequest CreatePostJsonWebRequest(string uri, string body, string authToken)
         {
             return CreatePostRequest(uri, body, authToken);
