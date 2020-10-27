@@ -121,6 +121,50 @@ namespace PowerBiBuddy
             return content;
         }
 
+        public async Task<PbiResponse<Report>> GetReportsAsync(Guid workspaceId)
+        {
+            var request = this.webRequestFactory.CreateGetWebRequest($"{baseAddress}/groups/{workspaceId:D}/reports", this.authToken);
+
+            var response = (HttpWebResponse)request.GetResponse();
+
+            var content = string.Empty;
+
+            using (response)
+            {
+                var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
+                content = await reader.ReadToEndAsync();
+            }
+
+            return JsonConvert.DeserializeObject<PbiResponse<Report>>(content);
+        }
+
+        public async Task<Report> CloneReportAsync(Guid sourceWorkspaceId, Guid sourceReportId, Guid targetWorkspaceId, Guid targetDatasetId, string targetReportName)
+        {
+            var cloneReportRequest = new CloneReportRequest
+            {
+                TargetReportName = targetReportName,
+                TargetDataSetId = targetDatasetId,
+                TargetWorkspaceId = targetWorkspaceId
+            };
+            
+            var request = this.webRequestFactory.CreatePostJsonWebRequest(
+                $"{baseAddress}/groups/{sourceWorkspaceId:D}/reports/{sourceReportId:D}/Clone",
+                JsonConvert.SerializeObject(cloneReportRequest),
+                this.authToken);
+
+            var response = (HttpWebResponse)request.GetResponse();
+
+            var content = string.Empty;
+
+            using (response)
+            {
+                var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
+                content = await reader.ReadToEndAsync();
+            }
+
+            return JsonConvert.DeserializeObject<Report>(content);
+        }
+
         public void Dispose() => Dispose(true);
 
         private void Dispose(bool disposing)

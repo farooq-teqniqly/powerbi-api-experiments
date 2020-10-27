@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using PowerBiBuddy.Client.Models;
@@ -23,7 +24,6 @@ namespace PowerBiBuddy
             
             using (client)
             {
-
                 // Create workspace
                 var workspaceName = $"test-{company}";
 
@@ -79,6 +79,22 @@ namespace PowerBiBuddy
                     addRowsRequest);
 
                 Console.WriteLine($"Finished populating dataset {dataset.Name}.");
+
+                var masterWorkspaceName = "test-erep-master";
+                var masterWorkspace = (await client.GetWorkspacesAsync()).Values.Single(w => w.Name == masterWorkspaceName);
+                var masterReport = (await client.GetReportsAsync(masterWorkspace.Id)).Values.Single();
+
+                Console.WriteLine($"Cloning report {masterReport.Name}...");
+
+                var clonedReport = await client.CloneReportAsync(
+                    masterWorkspace.Id, 
+                    masterReport.Id, 
+                    workspace.Id, 
+                    dataset.Id, 
+                    masterReport.Name);
+
+                Console.WriteLine($"Finished cloning report {clonedReport.Name}");
+
                 Console.Read();
 
                 return 0; 

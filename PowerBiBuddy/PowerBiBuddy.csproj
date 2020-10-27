@@ -55,11 +55,13 @@
     <Compile Include="Client\Models\AddDatasetRequest.cs" />
     <Compile Include="Client\Models\AddDatasetRowsRequest.cs" />
     <Compile Include="Client\Models\AddWorkspaceRequest.cs" />
+    <Compile Include="Client\Models\CloneReportRequest.cs" />
     <Compile Include="Client\Models\Column.cs" />
     <Compile Include="Client\Models\ConnectionRow.cs" />
     <Compile Include="Client\Models\Dataset.cs" />
     <Compile Include="Client\Models\PbiResource.cs" />
     <Compile Include="Client\Models\PbiResponse.cs" />
+    <Compile Include="Client\Models\Report.cs" />
     <Compile Include="Client\Models\Table.cs" />
     <Compile Include="Client\Models\Workspace.cs" />
     <Compile Include="Client\PbiClient.cs" />
